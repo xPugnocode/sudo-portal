@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sudo Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <h1>Sudo Portal</h1>
+    <button id="reload">Reload</button>
+    <br><br>
+    <select id="guildDropdown">
+        <option value="">Loading...</option>
+    </select>
+    <br><br>
+    <select id="channelDropdown" hidden>
+        <option value="">Loading...</option>
+    </select>
+    <br><br>
+    <label id="messageTextLabel" hidden>Message Text:</label>
+    <textarea id="messageText" rows='5' cols='75' hidden></textarea>
+    <br><br>
+    <button id="sendButton" hidden>Send!</button>
+    <p id="logging" hidden></p>
+
+    <script>
+        $(document).ready(function() {
+            $('#guildDropdown').select2({
+                placeholder: 'Select a server',
+                allowClear: true,
+                // minimumResultsForSearch: Infinity,
+                dropdownAutoWidth: true,
+                width: 420,
+                closeOnSelect: true,
+            });
+            $.ajax({
+                url: '/get-guilds',
+                method: 'GET',
+                success: function(data) {
+                    data.options.forEach(function(option) {
+                        var newOption = new Option(option.text, option.value);
+                        $('#guildDropdown').append(newOption).trigger('change');
+                    });
+                },
+                error: function(error) {
+                    console.log('Error loading options:', error);
+                }
+            });
+            $('#reload').on('click', function() {
+                $('#channelDropdown').select2('destroy');
+                $('#channelDropdown').hide();
+                $('#channelDropdown').empty();
+                $('#messageTextLabel').hide();
+                $('#messageText').hide();
+                $('#messageText').val('')
+                $('#sendButton').hide();
+                $('#logging').hide();
+                $('#guildDropdown').select2('destroy');
+                $('#guildDropdown').empty();
+                $('#guildDropdown').select2({
+                    placeholder: 'Select a server',
+                    allowClear: true,
+                    // minimumResultsForSearch: Infinity,
+                    dropdownAutoWidth: true,
+                    width: 420,
+                    closeOnSelect: true,
+                });
+                $.ajax({
+                    url: '/get-guilds',
+                    method: 'GET',
+                    success: function(data) {
+                        data.options.forEach(function(option) {
+                            var newOption = new Option(option.text, option.value);
+                            $('#guildDropdown').append(newOption).trigger('change');
+                        });
+                        $('#guildDropdown').val(null).trigger('change');
+                    },
+                    error: function(error) {
+                        console.log('Error loading options:', error);
+                    }
+                });
+            });
+            $('#guildDropdown').on('select2:select', function(e) {
+                const selection = e.params.data;
+                $('#channelDropdown').show();
+                $('#channelDropdown').select2({
+                    placeholder: 'Select a channel',
+                    allowClear: true,
+                    // minimumResultsForSearch: Infinity,
+                    dropdownAutoWidth: true,
+                    width: 420,
+                    closeOnSelect: true,
+                });
+                $('#channelDropdown').empty();
+                $('#messageTextLabel').hide();
+                $('#messageText').hide();
+                $('#messageText').val('')
+                $('#sendButton').hide();
+                $('#logging').hide();
+                $.ajax({
+                    url: '/get-channels',
+                    method: 'GET',
+                    data: {
+                        'guild_id' : selection.id
+                    },
+                    success: function(data) {
+                        data.options.forEach(function(option) {
+                            var newOption = new Option(option.text, option.value);
+                            $('#channelDropdown').append(newOption).trigger('change');
+                        });
+                        $('#channelDropdown').val(null).trigger('change');
+                    },
+                    error: function(error) {
+                        console.log('Error loading options:', error);
+                    }
+                });
+            });
+            $('#guildDropdown').on('select2:unselect', function() {
+                $('#channelDropdown').select2('destroy');
+                $('#channelDropdown').hide();
+                $('#channelDropdown').empty();
+                $('#messageTextLabel').hide();
+                $('#messageText').hide();
+                $('#messageText').val('')
+                $('#sendButton').hide();
+                $('#logging').hide();
+            });
+            $('#channelDropdown').on('select2:select', function(e) {
+                $('#messageTextLabel').show();
+                $('#messageText').show();
+                $('#messageText').val('')
+                $('#sendButton').show();
+                
+            });
+            $('#channelDropdown').on('select2:unselect', function() {
+                $('#messageTextLabel').hide();
+                $('#messageText').hide();
+                $('#messageText').val('')
+                $('#sendButton').hide();
+                $('#logging').hide();
+            });
+            $('#sendButton').on('click', function() {
+                const message = $('#messageText').val();
+                const channel = $('#channelDropdown').val();
+                $.ajax({
+                    url: '/send-message',
+                    method: 'GET',
+                    data: {
+                        'message' : message,
+                        'channel_id' : channel
+                    },
+                    success: function(data) {
+                        $('#logging').show();
+                        if (data.result == true) {
+                            $('#logging').text('Successfully sent: ' + message);
+                            $('#messageText').val('')
+                        } else {
+                            $('#logging').text('Message send failure');
+                        }
+                    },
+                    error: function(error) {
+                        $('#logging').show();
+                        $('#logging').text('Message send failure');
+                        console.log('Error loading options:', error);
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
+</body>
