@@ -1,4 +1,30 @@
-# Django
+# sudo portal
+a little silly website I'm going to work on \
+uses **django** and **discord.py**
 
-A Django starter template as per the docs: https://docs.djangoproject.com/en/5.0/intro/tutorial01/
+## Hosting
 
+Not publicly hosted... yet.
+
+## Features
+
++ Sending only text messages to any server the bot is in
++ More features coming soon... (uploading files, joining voice channels, etc.)
+
+## Deploying
+
+Install Python3
+
+Fill in the environmental variables in .env
+
+Install dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the script with:
+
+```bash
+python src/manage.py runserver
+```
