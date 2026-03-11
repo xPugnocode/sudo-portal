@@ -3,4 +3,5 @@ __pycache__
 .idx
 .vscode
 devserver.sh
+
 .env
